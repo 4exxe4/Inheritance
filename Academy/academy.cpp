@@ -86,7 +86,7 @@ public:
 	}
 	double get_rating()const
 	{
-		double rating;
+		return rating;
 	}
 	double get_attendance()const
 	{
@@ -129,6 +129,10 @@ public:
 		cout << speciality << " " << group << " " << rating << " " << attendance << endl;
 	}
 };
+std::ostream& operator << (std::ostream& os, const Student& obj)
+{
+	return os << obj.get_speciality() << " " << obj.get_group() << " " << obj.get_rating() << " " << obj.get_attendance();
+}
 
 #define TEACHER_TAKE_PARAMETERS const std::string& speciality, int experience
 #define TEACHER_GIVE_PARAMETERS speciality, experience
@@ -174,6 +178,10 @@ public:
 		cout << speciality << " " << experience << endl;
 	}
 };
+std::ostream& operator << (std::ostream& os, const Teacher& obj)
+{
+	return os << obj.get_speciality() << " " << obj.get_experience();
+}
 
 #define GRADUATE_TAKE_PARAMETERS const std::string& subject
 #define GRADUATE_GIVE_PARAMETERS subject
@@ -210,6 +218,11 @@ public:
 		cout << get_subject() << endl;
 	}
 };
+
+std::ostream& operator << (std::ostream& os, const Graduate& obj)
+{
+	return os << obj.get_subject();
+}
 
 class Filename :public std::string
 {
@@ -255,11 +268,17 @@ void main()
 	for (int i = 0; i < sizeof(group) / sizeof(group[0]); i++)
 	{
 		group [i] -> info();
+		cout << typeid(*group[i]).name() << endl;
+		if (typeid(*group[i]) == typeid(Human)) fout << *group[i] << endl;
+		//Manual Downcast
+		if (typeid(*group[i]) == typeid(Student)) fout << *dynamic_cast <Student*>(group[i]) << endl;
+		if (typeid(*group[i]) == typeid(Teacher)) fout << *dynamic_cast <Teacher*>(group[i]) << endl;
+		if (typeid(*group[i]) == typeid(Graduate)) fout << *dynamic_cast <Graduate*>(group[i]) << endl;
 		fout << *group[i] << endl;
 		cout << DELIMITER << endl;
 	}
 	fout.close();
-	system("notepad group.txt");
+	system("start notepad group.txt");
 
 	for (int i = 0; i < sizeof(group) / sizeof(group[0]); i++)
 	{
