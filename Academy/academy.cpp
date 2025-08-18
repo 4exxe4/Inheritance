@@ -10,10 +10,18 @@ using std::endl;
 #define DELIMITER "\n----------------------------------------------\n"
 class Human 
 {
+	static const int TYPE_WIDTH = 12;
+	static const int NAME_WIDTH = 12;
+	static const int AGE_WIDTH = 12;
+	static int count; //Объявление статической переменной
 	std::string last_name;
 	std::string first_name;
 	int age;
 public:
+	static int get_count()
+	{
+		return count;
+	}
 	const std::string& get_last_name()const
 	{
 		return last_name;
@@ -46,24 +54,43 @@ public:
 		set_last_name(last_name);
 		set_first_name(first_name);
 		set_age(age);
+		count++;
 		cout << "HConstructor:\t" << this << endl;
 	}
 	virtual ~Human()
 	{
+		count--;
 		cout << "HDestructor:\t" << this << endl;
 	}
 
 	//Methods:
 
-	virtual void info()const
+	virtual std::ostream& info(std::ostream& os)const
 	{
-		cout << last_name << " " << first_name << " " << age << endl;
+		os.width(TYPE_WIDTH);    //Метод width (N) задает размер поля, в которое будет выведено значение
+		os << std::left;
+		os << std::string(strchr(typeid(*this).name(), ' ')+1) + ":";
+		//return os << last_name << " " << first_name << " " << age;
+		//strchr (const char* str, char symbol);
+		//strchr() в указанной строке (str) находит указанный символ (symbol),
+		//и возвращает указатель на найденный символ, или 'nullptr',
+		//если указанный символ отсутсвует в указанной строке.
+		//class Student;
+		os.width(NAME_WIDTH);
+		os << last_name;
+		os.width(NAME_WIDTH);
+		os << first_name;
+		os.width(AGE_WIDTH);
+		os << age;
+		return os;
 	}
 };
 
+int Human::count = 0; //Инициализация статической переменной 
+
 std::ostream& operator << (std::ostream& os, const Human& obj)
 {
-	return os << obj.get_last_name() << " " << obj.get_first_name() << " " << obj.get_age();
+	return obj.info(os);
 }
 
 #define STUDENT_TAKE_PARAMETERS const std::string& speciality, const std::string& group, double rating, double attendance
@@ -71,6 +98,9 @@ std::ostream& operator << (std::ostream& os, const Human& obj)
 
 class Student :public Human
 {
+	static const int SPECIALITY_WIDTH = 22;
+	static const int GROUP_WIDTH = 8;
+	static const int RAT_WIDTH = 8;
 	std::string speciality;
 	std::string group;
 	double rating;
@@ -123,10 +153,20 @@ public:
 		cout << "SDestructor:\t" << this << endl;
 	}
 	//Methods:
-	void info()const override
+	std::ostream& info(std::ostream& os)const override
 	{
-		Human::info();
-		cout << speciality << " " << group << " " << rating << " " << attendance << endl;
+		//return Human::info(os) << speciality << " " << group << " " << rating << " " << attendance;
+		Human::info(os);
+		os.width(SPECIALITY_WIDTH);
+		os << speciality;
+		os.width(GROUP_WIDTH);
+		os << group;
+		os.width(RAT_WIDTH);
+		os << rating;
+		os.width(RAT_WIDTH);
+		os << attendance;
+		return os;
+		
 	}
 };
 
@@ -135,6 +175,8 @@ public:
 
 class Teacher :public Human
 {
+	static const int SPECIALITY_WIDTH = 22;
+	static const int EXPERIENCE_WIDTH = 5;
 	std::string speciality;
 	int experience;
 public:
@@ -168,10 +210,15 @@ public:
 	{
 		cout << "TDestructor:\t" << this << endl;
 	}
-	void info()const override
+	std::ostream& info(std::ostream& os)const override
 	{
-		Human::info();
-		cout << speciality << " " << experience << endl;
+		//return Human::info(os) << speciality << " " << experience;
+		Human::info(os);
+		os.width(SPECIALITY_WIDTH);
+		os << speciality;
+		os.width(EXPERIENCE_WIDTH);
+		os << experience;
+		return os;
 	}
 };
 
@@ -204,10 +251,9 @@ public:
 	}
 
 	//Methods:
-	void info()const override
+	std::ostream& info(std::ostream& os)const override
 	{
-		Student::info();
-		cout << get_subject() << endl;
+		return Student::info(os) << get_subject();
 	}
 };
 
@@ -245,7 +291,7 @@ void main()
 	{
 		new Student("Pincman", "Jessie", 22, "Chemistry", "WW_220", 95, 98),
 		new Teacher("White", "Walter", 50, "Chemistry", 25),
-		new Graduate("Schreder", "Hank", 40, "Criminalistic", "OBN", 40, 50, "How to catch Heisenberg"),
+		new Graduate("Schreder", "Hank", 40, "Criminalistic", "OBN", 40, 50, " How to catch Heisenberg"),
 		new Student("Vercetty", "Tommy", 30, "Theft", "Vice", 98,99),
 		new Teacher("Diaz", "Ricardo", 50, "Weapons Distribution",20),
 	};
@@ -254,10 +300,12 @@ void main()
 
 	for (int i = 0; i < sizeof(group) / sizeof(group[0]); i++)
 	{
-		group [i] -> info();
+		group [i] -> info(cout);
 		fout << *group[i] << endl;
 		cout << DELIMITER << endl;
 	}
+	cout << "Количество объектов: " << group[0]->get_count() << endl;
+	cout << "Количество объектов: " << Human::get_count() << endl;
 	fout.close();
 	system("notepad group.txt");
 
@@ -279,4 +327,18 @@ void main()
 
 То есть, конструктор дочернего класса должен делегировать конструктор базового класса, чтобы передать в него параметры.
 Но прежде чем передавать параметры куда либо, их нужно для начала принять. Поэтому конструктор дочернего класса, кроме своих собственных параметров (переменных членов) так же должен принимать параметры базового класса.
+*/
+
+/*
+Статические поля класса
+
+Каждая переменная член класса принадлежит какому-то объекту и соответственно занимает память в этом объекте, благодаря чему у каждого объекта свои уникальные значения его полей.
+
+Статические переменные принадлежат классу, а не объектам и соответственно занимают память в классе, а не в объектах.
+Статические переменные являются общиими для всех объектов класса. И каждый объект имеет равноправный доступ к статическим переменным его класса.
+
+При помощи статических переменных очень удобно счиать количество экземпляров класса. Статические переменные могут быть проинициализированны только за пределами класса. Исключением являются только статические константы типа int.
+
+Статическими могут быть не только переменные, но и методы.
+Статический метод может быть вызван как для объекта, так и для класса
 */
