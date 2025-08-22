@@ -183,7 +183,7 @@ public:
 		is.read(sz_buffer, SPECIALITY_WIDTH); //cin.read() читает заданное количество символов из файла, и сохраняет их в NTL (NULL-Terminated Line)
 
 		//Удаляем лишние пробелы в конце прочитанной строки:
-		for (int i = SPECIALITY_WIDTH; sz_buffer[i] == ' '; i--)sz_buffer[i] = 0;
+		for (int i = SPECIALITY_WIDTH-1; sz_buffer[i] == ' '; i--)sz_buffer[i] = 0;
 
 		//Удаляем лишние пробелы в начале прочитанной строки:
 		while (sz_buffer[0] == ' ')
@@ -253,7 +253,7 @@ public:
 		is.read(sz_buffer, SPECIALITY_WIDTH); //cin.read() читает заданное количество символов из файла, и сохраняет их в NTL (NULL-Terminated Line)
 
 		//Удаляем лишние пробелы в конце прочитанной строки:
-		for (int i = SPECIALITY_WIDTH; sz_buffer[i] == ' '; i--)sz_buffer[i] = 0;
+		for (int i = SPECIALITY_WIDTH-1; sz_buffer[i] == ' '; i--)sz_buffer[i] = 0;
 
 		//Удаляем лишние пробелы в начале прочитанной строки:
 		while (sz_buffer[0] == ' ')
@@ -340,10 +340,10 @@ void Save(Human* group[], const int n, const std::string& filename)
 Human* HumanFactory(const std::string& type)
 {
 	Human* human = nullptr;
-	if (type == "Human")human = new Human("", "", 0);
-	else if (type == "Student")human = new Student("", "", 0, "", "", 0, 0);
-	else if (type == "Graduate")human = new Graduate("", "", 0, "", "", 0, 0, "");
-	else if (type == "Teacher")human = new Teacher("", "", 0, "", 0);
+	if (strstr(type.c_str(), "Human"))human = new Human("", "", 0);
+	else if (strstr(type.c_str(), "Student"))human = new Student("", "", 0, "", "", 0, 0);
+	else if (strstr(type.c_str(), "Graduate"))human = new Graduate("", "", 0, "", "", 0, 0, "");
+	else if (strstr(type.c_str(), "Teacher"))human = new Teacher("", "", 0, "", 0);
 	return human;
 }
 Human** Load(const std::string& filename, int& n)
@@ -373,11 +373,14 @@ Human** Load(const std::string& filename, int& n)
 		cout << "Position" << fin.tellg() << endl; //Метод tellg() возвращает текущую Get-позицию курсора на чтение.
 
 		//4) Загружаем объекты из файла:
-		for (int i = 0; !fin.eof(); i++)
+		for (int i = 0; !fin.eof();)
 		{
 			std::string buffer;
 			std::getline(fin, buffer, ':');
+			if (buffer.size() < 5)continue;
 			group[i] = HumanFactory(buffer);
+			fin >> *group[i];
+			i++;
 		}
 	}
 	else
@@ -443,6 +446,7 @@ void main()
 	int n = 0;
 	Human** group = Load("group.txt", n);
 	Print(group, n);
+	Clear(group, n);
 }
 
 /*
