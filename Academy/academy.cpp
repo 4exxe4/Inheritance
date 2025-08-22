@@ -84,6 +84,10 @@ public:
 		os << age;
 		return os;
 	}
+	virtual std::istream& scan(std::istream& is)
+	{
+		return is >> last_name >> first_name >> age;
+	}
 };
 
 int Human::count = 0; //Инициализация статической переменной 
@@ -91,6 +95,10 @@ int Human::count = 0; //Инициализация статической пер
 std::ostream& operator << (std::ostream& os, const Human& obj)
 {
 	return obj.info(os);
+}
+std::istream& operator >> (std::istream& is, Human& obj)
+{
+	return obj.scan(is);
 }
 
 #define STUDENT_TAKE_PARAMETERS const std::string& speciality, const std::string& group, double rating, double attendance
@@ -168,6 +176,24 @@ public:
 		return os;
 		
 	}
+	std::istream& scan(std::istream& is)override
+	{
+		Human::scan(is);
+		char sz_buffer[SPECIALITY_WIDTH + 1] = {};
+		is.read(sz_buffer, SPECIALITY_WIDTH); //cin.read() читает заданное количество символов из файла, и сохраняет их в NTL (NULL-Terminated Line)
+
+		//Удаляем лишние пробелы в конце прочитанной строки:
+		for (int i = SPECIALITY_WIDTH; sz_buffer[i] == ' '; i--)sz_buffer[i] = 0;
+
+		//Удаляем лишние пробелы в начале прочитанной строки:
+		while (sz_buffer[0] == ' ')
+			for (int i = 0; sz_buffer[i]; i++)sz_buffer[i] = sz_buffer[i + 1];
+
+		speciality = sz_buffer; //Сохраняем специальность в соответствующем поле
+
+		is >> group >> rating >> attendance;
+		return is;
+	}
 };
 
 #define TEACHER_TAKE_PARAMETERS const std::string& speciality, int experience
@@ -220,6 +246,24 @@ public:
 		os << experience;
 		return os;
 	}
+	std::istream& scan(std::istream& is)override
+	{
+		Human::scan(is);
+		char sz_buffer[SPECIALITY_WIDTH + 1] = {};
+		is.read(sz_buffer, SPECIALITY_WIDTH); //cin.read() читает заданное количество символов из файла, и сохраняет их в NTL (NULL-Terminated Line)
+
+		//Удаляем лишние пробелы в конце прочитанной строки:
+		for (int i = SPECIALITY_WIDTH; sz_buffer[i] == ' '; i--)sz_buffer[i] = 0;
+
+		//Удаляем лишние пробелы в начале прочитанной строки:
+		while (sz_buffer[0] == ' ')
+			for (int i = 0; sz_buffer[i]; i++)sz_buffer[i] = sz_buffer[i + 1];
+
+		speciality = sz_buffer; //Сохраняем специальность в соответствующем поле
+
+		is >> experience;
+		return is;
+	}
 };
 
 #define GRADUATE_TAKE_PARAMETERS const std::string& subject
@@ -255,6 +299,11 @@ public:
 	{
 		return Student::info(os) << get_subject();
 	}
+	std::istream& scan(std::istream& is)override
+	{
+		std::getline(is, subject);
+		return is;
+	}
 };
 
 class Filename :public std::string
@@ -288,6 +337,15 @@ void Save(Human* group[], const int n, const std::string& filename)
 	cmd += filename;
 	system(cmd.c_str()); //Метод c_str() возвращает строку в виде массива символов (char* );
 }
+Human* HumanFactory(const std::string& type)
+{
+	Human* human = nullptr;
+	if (type == "Human")human = new Human("", "", 0);
+	else if (type == "Student")human = new Student("", "", 0, "", "", 0, 0);
+	else if (type == "Graduate")human = new Graduate("", "", 0, "", "", 0, 0, "");
+	else if (type == "Teacher")human = new Teacher("", "", 0, "", 0);
+	return human;
+}
 Human** Load(const std::string& filename, int& n)
 {
 	Human** group = nullptr;
@@ -313,6 +371,14 @@ Human** Load(const std::string& filename, int& n)
 		fin.clear();
 		fin.seekg(0); //Метод seekg(n), переводит Get-курсор (на чтение) в указанную позицию 'n';
 		cout << "Position" << fin.tellg() << endl; //Метод tellg() возвращает текущую Get-позицию курсора на чтение.
+
+		//4) Загружаем объекты из файла:
+		for (int i = 0; !fin.eof(); i++)
+		{
+			std::string buffer;
+			std::getline(fin, buffer, ':');
+			group[i] = HumanFactory(buffer);
+		}
 	}
 	else
 	{
