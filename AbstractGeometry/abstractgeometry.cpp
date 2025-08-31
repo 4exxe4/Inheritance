@@ -83,7 +83,10 @@ namespace Geometry
 
 		virtual double get_area()const = 0;
 		virtual double get_perimeter()const = 0;
-		virtual void draw()const = 0;
+		virtual void draw()const
+		{
+
+		}
 		virtual void info()const
 		{
 			cout << "ѕлощадь фигуры: " << get_area() << endl;
@@ -187,7 +190,7 @@ namespace Geometry
 			SelectObject(hdc, hBrush);
 
 			//5) ѕосле того, как все необходимые инструменты созданы и выбраны, можно рисовать:
-			::Rectangle(hdc, start_x,start_y, start_x+width, start_y+height);
+			::DrawFunction(hdc, start_x,start_y, start_x+width, start_y+height);
 
 			//6) hdc, hPen и hBrush занимают ресурсы, а ресурсы нужно освобождать:
 
