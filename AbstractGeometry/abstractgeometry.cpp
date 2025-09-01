@@ -19,6 +19,9 @@ namespace Geometry
 	class Shape
 	{
 	protected:
+		HDC hdc;
+		HPEN hPen;
+		HBRUSH hBrush;
 		Color color;
 		int start_x;
 		int start_y;
@@ -39,6 +42,20 @@ namespace Geometry
 			set_start_x(start_x);
 			set_start_y(start_y);
 			set_line_width(line_width);
+
+			//DrawingTools:
+
+			hdc = GetDC(GetConsoleWindow());
+			hPen =  CreatePen(PS_SOLID, line_width, color);
+			hBrush = CreateSolidBrush(color);
+			SelectObject(hdc, hPen);
+			SelectObject(hdc, hBrush);
+		}
+		~Shape()
+		{
+			DeleteObject(hBrush);
+			DeleteObject(hPen);
+			ReleaseDC(GetConsoleWindow(), hdc);
 		}
 		void set_start_x(int start_x)
 		{
@@ -91,6 +108,7 @@ namespace Geometry
 			draw();
 		}
 	};
+	//HDC Shape::hdc = NULL;
 
 	/*class Square :public Shape
 	{
@@ -173,28 +191,7 @@ namespace Geometry
 		}
 		void draw()const override
 		{
-			//1) ѕолучаем окно консоли
-			HWND hwnd = GetConsoleWindow();
-			//2) ѕолучаем контекст устройства (DC - Device Context) дл€ окна консоли: 
-			HDC hdc = GetDC(hwnd);
-
-			//3) —оздадим инструменты, которыми мы будем рисовать:
-			HPEN hPen = CreatePen(PS_SOLID, 5,color); // арадаш (Pen) рисует контур фигуры.
-			HBRUSH hBrush = CreateSolidBrush(color);   // исть (Brush) рисует заливку фигуры.
-
-			//4) ¬ыберем созданные инструменты:
-			SelectObject(hdc, hPen);
-			SelectObject(hdc, hBrush);
-
-			//5) ѕосле того, как все необходимые инструменты созданы и выбраны, можно рисовать:
 			::Rectangle(hdc, start_x,start_y, start_x+width, start_y+height);
-
-			//6) hdc, hPen и hBrush занимают ресурсы, а ресурсы нужно освобождать:
-
-			DeleteObject(hBrush);
-			DeleteObject(hPen);
-
-			ReleaseDC(hwnd, hdc);
 		}
 		void info()const override
 		{
@@ -238,19 +235,7 @@ namespace Geometry
 		}
 		void draw()const override
 		{
-			HWND hwnd = GetConsoleWindow();
-			HDC hdc = GetDC(hwnd);
-			HPEN hPen = CreatePen(PS_SOLID, line_width, color);
-			HBRUSH hBrush = CreateSolidBrush(color);
-
-			SelectObject(hdc, hPen);
-			SelectObject(hdc, hBrush);
-
 			::Ellipse(hdc, start_x, start_y, start_x + get_diameter(), start_y + get_diameter());
-
-			DeleteObject(hBrush);
-			DeleteObject(hPen);
-			ReleaseDC(hwnd, hdc);
 		}
 	};
 	class Triangle :public Shape
@@ -291,15 +276,6 @@ namespace Geometry
 		
 		void draw()const override
 		{
-			HWND hwnd = GetConsoleWindow();
-			HDC hdc = GetDC(hwnd);
-
-			HPEN hPen = CreatePen(PS_SOLID, line_width, color);
-			HBRUSH hBrush = CreateSolidBrush(color);
-
-			SelectObject(hdc, hPen);
-			SelectObject(hdc, hBrush);
-
 			const POINT verticles[] =
 			{
 				{ start_x, start_y + get_height() },
@@ -307,10 +283,6 @@ namespace Geometry
 				{ start_x + side / 2, start_y }
 			};
 			::Polygon(hdc, verticles, 3);
-
-			DeleteObject(hBrush);
-			DeleteObject(hPen);
-			ReleaseDC(hwnd, hdc);
 		}
 	};
 }
@@ -320,7 +292,7 @@ void main()
 	setlocale(LC_ALL, "");
 	//Shape shape(Color::Red);
 
-	Geometry::Square square(5, 100, 100, 1, Geometry::Color::Red);
+	Geometry::Square square(5, 100, 100, 1, Geometry::Color::White);
 	/*
 	cout << "ƒлина стороны квадрата: " << square.get_side() << endl;
 	cout << "ѕлощадь квадрата: " << square.get_area() << endl;
@@ -330,7 +302,7 @@ void main()
 	*/
 	square.info();
 
-	Geometry::Rectangle rect(150, 100, 150, 100, 2, Geometry::Color::Orange);
+	Geometry::Rectangle rect(150, 100, 250, 100, 2, Geometry::Color::Red);
 	rect.info();
 
 	Geometry::Circle circle(50, 800, 200, 1, Geometry::Color::Yellow);
